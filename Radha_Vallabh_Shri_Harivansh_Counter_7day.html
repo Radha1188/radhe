@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<title>Radha Vallabh Shri Harivansh — Counter</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap');
+  :root{
+    color-scheme:light;
+    --maroon:#7a1230; --gold:#c98a2b; --gold-pale:#f6e3c0;
+    --ink:#3a2618; --ink-dim:#8a7a6a; --paper:#fff5c2; --paper-warm:#fffdf0; --edge:#d9a21b;
+    --line:rgba(201,138,43,0.28);
+    box-sizing:border-box;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-padding-top:env(safe-area-inset-top,0px);}
+  html,body{margin:0;padding:0;}
+  body{
+    min-height:100vh; background:var(--paper); color:var(--ink);
+    font-family:'Space Grotesk',-apple-system,'Segoe UI',sans-serif;
+    padding:36px 18px 48px; -webkit-tap-highlight-color:transparent;
+    overflow-x:hidden; position:relative;
+  }
+
+  /* Radha watermark */
+  .wm{position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden;
+    display:grid; grid-template-columns:1fr 1fr; grid-template-rows:repeat(4,1fr); place-items:center; padding:14px 10px;}
+  .wm span{
+    font-family:'Cormorant Garamond',Georgia,serif; font-weight:700;
+    font-size:clamp(38px,10.5vw,68px); line-height:1; color:rgba(212,170,40,0.26);
+    transform:rotate(-14deg); white-space:nowrap; letter-spacing:.03em;
+  }
+  .wm span:nth-child(4n+2),.wm span:nth-child(4n+3){transform:rotate(12deg);}
+  .mala{margin:-8px 0 16px;font-size:12px;color:var(--ink-dim);letter-spacing:.05em;}
+  .card,.stat{box-shadow:0 6px 20px rgba(122,18,48,.06);}
+  button.ghost{transition:border-color .15s ease,color .15s ease,background .15s ease,transform .08s ease;}
+  button.ghost:active{transform:scale(.96);}
+
+  .frame{width:100%; max-width:400px; margin:0 auto; text-align:center; position:relative; z-index:1;}
+  .lotus{width:34px;height:34px;margin:0 auto 12px;color:var(--gold);display:block;}
+  .eyebrow{font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;font-weight:600;}
+  h1{font-family:'Cormorant Garamond',Georgia,serif;font-weight:700;font-size:clamp(38px,12vw,56px);line-height:1.25;margin:0 0 6px;color:var(--maroon);white-space:nowrap;}
+  h1 em{font-style:normal;color:var(--gold);}
+  @import url('https://fonts.googleapis.com/css2?family=Tiro+Devanagari+Hindi&display=swap');
+  .hindi{font-family:'Tiro Devanagari Hindi','Noto Serif Devanagari','Mangal',serif;font-size:clamp(24px,7.5vw,34px);color:var(--gold);margin:0 0 8px;letter-spacing:.02em;}
+  .sub{font-size:12px;color:var(--ink-dim);margin-bottom:28px;}
+
+  .ring{position:relative;width:min(70vw,250px);height:min(70vw,250px);margin:0 auto 26px;filter:drop-shadow(0 12px 28px rgba(122,18,48,0.14));}
+  .ring svg.progress{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg);}
+  .ring circle{fill:none;stroke-width:3;}
+  .ring .track{stroke:var(--gold-pale);}
+  .ring .fill{stroke:url(#goldGrad);stroke-linecap:round;transition:stroke-dashoffset .3s ease;}
+  #tapBtn{
+    position:absolute;inset:16px;border-radius:50%;border:2px solid var(--edge);
+    background:radial-gradient(circle at 50% 32%,#fffef7,var(--paper-warm) 75%);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 2px 10px rgba(122,18,48,.06);
+    color:var(--ink);display:flex;align-items:center;justify-content:center;flex-direction:column;
+    cursor:pointer;transition:transform .08s ease;user-select:none;
+  }
+  #tapBtn:active{transform:scale(0.96);}
+  #countNum{font-family:'Cormorant Garamond',Georgia,serif;font-weight:700;font-size:clamp(52px,15vw,72px);color:var(--maroon);line-height:1;}
+  #tapHint{margin-top:10px;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);font-weight:600;}
+  .ripple{position:absolute;border-radius:50%;border:1px solid var(--gold);inset:16px;opacity:0;pointer-events:none;}
+  .ripple.go{animation:rippleOut .55s ease-out;}
+  @keyframes rippleOut{0%{opacity:.7;transform:scale(.9);}100%{opacity:0;transform:scale(1.18);}}
+
+  .controls{display:flex;justify-content:center;gap:10px;margin-bottom:18px;}
+  button.ghost{
+    background:var(--paper-warm);border:1.5px solid var(--edge);color:var(--ink-dim);
+    font-family:inherit;font-size:11.5px;padding:9px 16px;border-radius:999px;cursor:pointer;
+  }
+  button.ghost:hover{border-color:var(--gold);color:var(--maroon);}
+  button.ghost.active{border-color:var(--gold);color:var(--maroon);background:var(--gold-pale);}
+  button.ghost:disabled{opacity:.35;cursor:default;}
+
+  .stats{display:flex;gap:10px;margin-bottom:26px;}
+  .stat{flex:1;padding:10px 6px;border:1.5px solid var(--edge);border-radius:12px;background:rgba(255,253,240,.95);}
+  .stat small{display:block;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-dim);}
+  .stat b{font-family:'Cormorant Garamond',Georgia,serif;font-size:22px;color:var(--maroon);}
+
+  .card{border:1.5px solid var(--edge);border-radius:16px;background:rgba(255,253,240,.94);padding:14px 12px;margin-bottom:18px;text-align:left;}
+  .card h2{font-family:'Cormorant Garamond',Georgia,serif;font-size:19px;color:var(--maroon);margin:0 0 10px;text-align:center;}
+
+  .monthbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+  .monthbar .ghost{padding:6px 12px;font-size:13px;}
+  .monthbar .mname{font-family:'Cormorant Garamond',Georgia,serif;font-weight:700;font-size:18px;color:var(--maroon);}
+  .msum{text-align:center;font-size:12px;color:var(--ink-dim);margin-bottom:10px;}
+  .msum b{color:var(--maroon);font-size:14px;}
+
+  .dow,.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+  .dow div{text-align:center;font-size:9.5px;color:var(--ink-dim);letter-spacing:.06em;padding-bottom:2px;}
+  .cell{
+    aspect-ratio:1/1.05;border-radius:8px;border:1px solid rgba(217,162,27,.55);background:#fff1b5;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    font-size:9px;color:var(--ink-dim);cursor:pointer;padding:0;font-family:inherit;line-height:1.15;
+  }
+  .cell .d{font-size:10px;color:var(--ink-dim);}
+  .cell .c{font-weight:600;color:var(--maroon);font-size:10px;}
+  .cell.empty{background:transparent;cursor:default;}
+  .cell.today{border-color:var(--gold);}
+  .cell.sel{outline:2px solid var(--maroon);outline-offset:-2px;}
+  .card.plog{background:linear-gradient(180deg,#eef6ff,#d9eaff);border-color:rgba(60,120,190,.35);}
+  .card.plog .feed li{border-bottom-color:rgba(60,120,190,.22);}
+  .card.plog .feed .p{color:#2f6db5;}
+  .card.month{background:linear-gradient(180deg,#ffeaa5,#ffd978);border-color:var(--edge);}
+  .card.month .cell{background:rgba(255,253,240,.92);}
+  textarea{background:#fffdf0;color:var(--ink);}
+  .card.month .cell.empty{background:transparent;border-color:transparent;}
+  .card.month .cell.today{border-color:var(--maroon);}
+  .detail{margin-top:10px;font-size:12px;color:var(--ink);text-align:center;min-height:34px;line-height:1.5;}
+
+  .feed{list-style:none;margin:0;padding:0;max-height:260px;overflow-y:auto;}
+  .feed li{display:flex;justify-content:space-between;gap:8px;font-size:12px;padding:7px 4px;border-bottom:1px solid var(--line);}
+  .feed li:last-child{border-bottom:0;}
+  .feed .t{color:var(--ink-dim);}
+  .feed .p{color:var(--gold);font-weight:600;}
+  .feed .n{color:var(--maroon);font-weight:600;font-family:'Cormorant Garamond',Georgia,serif;font-size:15px;}
+  .empty-note{text-align:center;font-size:12px;color:var(--ink-dim);padding:10px 0;}
+  .footnote{margin:6px auto 0;font-size:10.5px;color:var(--ink-dim);line-height:1.6;max-width:34ch;text-align:center;}
+
+  .goal-txt{text-align:center;font-size:12.5px;color:var(--ink);margin-bottom:8px;}
+  .bar{height:8px;border-radius:99px;background:var(--gold-pale);overflow:hidden;}
+  .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#e0a53f,#7a1230);transition:width .3s ease;}
+  .goal-num{text-align:center;font-size:12px;color:var(--ink-dim);margin-top:8px;}
+  .badge{font-weight:600;}
+  .badge.ok{color:#2e7d32;}
+  .badge.bad{color:#b3261e;}
+  .win{margin-top:12px;padding:10px;border:1px solid var(--gold);border-radius:12px;background:var(--gold-pale);font-size:12px;text-align:center;}
+  .win textarea,details textarea{width:100%;height:64px;margin-top:6px;font-size:10px;border:1.5px solid var(--edge);border-radius:8px;padding:6px;font-family:monospace;}
+  details{margin-top:12px;font-size:11.5px;color:var(--ink-dim);}
+  details summary{cursor:pointer;}
+  #vout{margin-top:6px;font-weight:600;color:var(--maroon);}
+  @media (prefers-reduced-motion:reduce){*{transition:none !important;animation:none !important;}}
+
+  /* ---- Challenges card ---- */
+  .card.challenge{padding:0;overflow:hidden;border:2.5px solid var(--gold);border-radius:18px;
+    background:linear-gradient(180deg,#fffdf0 0%,#fff3cf 100%);
+    box-shadow:0 0 0 4px var(--gold-pale),0 10px 26px rgba(122,18,48,.14);margin:0 4px 22px;text-align:center;}
+  .ch-head{background:linear-gradient(135deg,#7a1230,#a8264a);padding:13px 12px;border-bottom:2.5px solid var(--gold);}
+  .ch-head h2{margin:0;color:#fff;font-size:22px;letter-spacing:.06em;text-align:center;}
+  .ch-head small{display:block;margin-top:2px;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:#f6e3c0;font-family:'Space Grotesk',sans-serif;}
+  .ch-body{padding:14px 12px 16px;}
+  .ch-rewards{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+  .ch-tile{border:1.5px solid var(--gold);border-radius:10px;padding:6px 6px 7px;font-size:10px;line-height:1.3;}
+  .ch-tile .ic{font-size:14px;line-height:1;display:inline-block;vertical-align:middle;margin-right:3px;}
+  .ch-tile .dy{display:inline-block;vertical-align:middle;font-family:'Cormorant Garamond',Georgia,serif;font-weight:700;font-size:15px;line-height:1.1;}
+  .ch-tile .rw{display:block;margin-top:2px;}
+  .ch-tile.t7{background:linear-gradient(160deg,#fff8dc,#f6e3c0);color:var(--ink);}
+  .ch-tile.t7 .dy{color:var(--maroon);}
+  .ch-tile.t30{background:linear-gradient(160deg,#7a1230,#9c1f45);color:#fde9bf;border-color:#e0a53f;}
+  .ch-tile.t30 .dy{color:#ffd978;}
+  .ch-tile b{font-weight:700;}
+  .ch-panel{border:2px solid var(--edge);border-radius:14px;background:rgba(255,255,255,.65);padding:12px 12px 13px;margin-bottom:12px;}
+  .ch-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-dim);font-weight:600;}
+  .ch-row b{font-family:'Cormorant Garamond',Georgia,serif;font-size:24px;letter-spacing:0;color:var(--maroon);text-transform:none;}
+  .ch-row b .of{font-size:14px;color:var(--ink-dim);font-weight:600;}
+  .ch-bar{height:14px;border-radius:999px;background:#fbeecb;border:1.5px solid var(--edge);overflow:hidden;}
+  .ch-bar i{display:block;height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,#e0a53f,#c0392b 60%,#7a1230);transition:width .3s ease;}
+  .ch-dots{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin:12px 0 8px;}
+  .ch-dots span{padding:8px 0;border:2px solid var(--edge);border-radius:10px;font-size:12px;font-weight:600;color:var(--ink-dim);background:var(--paper-warm);}
+  .ch-dots span.on{background:linear-gradient(160deg,#9c1f45,#7a1230);border-color:#7a1230;color:#ffd978;box-shadow:0 2px 6px rgba(122,18,48,.25);}
+  .ch-msg{font-size:12px;color:var(--ink-dim);line-height:1.45;}
+  .chbanner{margin-top:12px;padding:11px 12px;border-radius:12px;background:linear-gradient(135deg,#ffe9a6,#f6c75a);border:2px solid var(--maroon);color:var(--maroon);font-weight:700;font-size:13px;line-height:1.4;}
+  .cell.goal .d::after{content:' ✓';color:var(--maroon);}
+</style>
+</head>
+<body>
+
+  <div class="wm" aria-hidden="true">
+    <span>Radha</span>
+    <span>Radha</span>
+    <span>Radha</span>
+    <span>Radha</span>
+    <span>Radha</span>
+    <span>Radha</span>
+    <span>Radha</span>
+    <span>Radha</span>
+  </div>
+
+  <div class="frame">
+    <h1>Radha</h1>
+    <div class="hindi" lang="hi">राधा</div>
+    <div class="sub">Tap the circle for each count</div>
+
+    <div class="ring">
+      <svg class="progress" viewBox="0 0 100 100">
+        <defs>
+          <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#e0a53f"/><stop offset="100%" stop-color="#7a1230"/>
+          </linearGradient>
+        </defs>
+        <circle class="track" cx="50" cy="50" r="46"></circle>
+        <circle class="fill" id="ringFill" cx="50" cy="50" r="46" stroke-dasharray="289" stroke-dashoffset="289"></circle>
+      </svg>
+      <div class="ripple" id="ripple"></div>
+      <button id="tapBtn"><span id="countNum">0</span><span id="tapHint">tap to count</span></button>
+    </div>
+
+    <div class="mala" id="malaTxt"></div>
+    <div class="controls" style="flex-wrap:wrap">
+      <button class="ghost" id="resetBtn">Reset counter</button>
+      <button class="ghost" id="exportBtn">⬇ Export log (.txt)</button>
+      <button class="ghost" id="monthBtn">⬇ This month (.txt)</button>
+      <button class="ghost" id="copyBtn">📋 Copy log</button>
+    </div>
+    <textarea id="exportBox" readonly hidden style="width:100%;height:150px;margin:-6px 0 14px;font-size:10px;font-family:monospace;border:1.5px solid var(--edge);border-radius:8px;padding:6px;"></textarea>
+
+    <div class="stats">
+      <div class="stat"><small>Today</small><b id="todayNum">0</b></div>
+      <div class="stat"><small>This month</small><b id="monthNowNum">0</b></div>
+      <div class="stat"><small>All time</small><b id="allNum">0</b></div>
+    </div>
+
+    <div class="card challenge">
+      <div class="ch-head"><h2>Challenges</h2><small>Tap daily · win rewards</small></div>
+      <div class="ch-body">
+        <div class="ch-rewards">
+          <div class="ch-tile t7"><span class="ic">🎁</span><span class="dy">7 Days</span><span class="rw">in a row<br><b>44,442 RSS</b> free</span></div>
+          <div class="ch-tile t30"><span class="ic">🏰</span><span class="dy">30 Days</span><span class="rw">in a row<br><b>C25 castle</b> · <b>400k gems</b><br>+ <b>1,000 days</b> total speedups</span></div>
+        </div>
+
+        <div class="ch-panel">
+          <div class="ch-row"><span>Today</span><b><span id="chToday">0</span> <span class="of">/ <span id="chGoal"></span></span></b></div>
+          <div class="ch-bar"><i id="chBar"></i></div>
+          <div class="ch-dots" id="chDots"></div>
+          <div class="ch-msg" id="chMsg"></div>
+          <div class="chbanner" id="chBanner" hidden></div>
+        </div>
+
+        <div class="ch-panel" style="margin-bottom:0">
+          <div class="ch-row"><span>30-day streak</span><b><span id="chLong">0</span> <span class="of">/ 30 days</span></b></div>
+          <div class="ch-bar"><i id="chBar30"></i></div>
+          <div class="chbanner" id="chBanner30" hidden></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card month">
+      <h2>Monthly log</h2>
+      <div class="monthbar">
+        <button class="ghost" id="prevM">‹</button>
+        <div class="mname" id="mName"></div>
+        <button class="ghost" id="nextM">›</button>
+      </div>
+      <div class="msum" id="mSum"></div>
+      <div class="dow"><div>S</div><div>M</div><div>T</div><div>W</div><div>T</div><div>F</div><div>S</div></div>
+      <div class="grid" id="grid"></div>
+      <div class="detail" id="detail">Tap a day to see details.</div>
+    </div>
+
+    <div class="card plog">
+      <h2>Press log</h2>
+      <ul class="feed" id="feed"></ul>
+    </div>
+
+    <details><summary>Organizer: verify a log file</summary>
+      <textarea id="vin" placeholder="Paste the full text of the exported .txt file"></textarea>
+      <button class="ghost" id="vbtn" style="margin-top:6px">Verify</button>
+      <div id="vout"></div>
+    </details>
+
+    <div class="footnote">Every press is saved on this device. Reset only sets the counter back to 0 — the log is never deleted. Automatic or scripted clicking is blocked. Clearing your browser data would remove it.</div>
+  </div>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const tapBtn=$('tapBtn'), countNum=$('countNum'), ringFill=$('ringFill'), ripple=$('ripple');
+  const resetBtn=$('resetBtn');
+  const MANTRA="Radha Vallabh Shri Harivansh", CIRC=289, CYCLE=108, KEY='japa-giveaway-v3', FEED_MAX=100;
+
+  let state={count:0,best:0,days:{},feed:[]};
+  const now=new Date();
+  let view={y:now.getFullYear(),m:now.getMonth()};
+  let selected=null;
+
+  const pad=n=>String(n).padStart(2,'0');
+  const dkey=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+  const fmtT=ts=>new Date(ts).toLocaleTimeString([], {hour:'numeric',minute:'2-digit',second:'2-digit'});
+  const fmtS=ts=>new Date(ts).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'});
+  const num=n=>Number(n).toLocaleString();
+  const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+  function load(){
+    try{
+      const raw=localStorage.getItem(KEY);
+      if(raw){
+        const p=JSON.parse(raw);
+        state.count=p.count||0; state.best=p.best||0;
+        state.days=p.days||{}; state.feed=Array.isArray(p.feed)?p.feed:[];
+        state.total=p.total||0; state.chain=p.chain||''; state.lastT=p.lastT||0;
+        state.firstT=p.firstT||0; state.goalT=p.goalT||0; state.sig=p.sig;
+        tampered=(p.sig!==sigOf());
+      }
+    }catch(e){ console.error('load',e); tampered=true; }
+  }
+  function save(){
+    if(tampered) return;
+    seal();
+    try{ localStorage.setItem(KEY,JSON.stringify(state)); }catch(e){ console.error('save',e); }
+  }
+
+  function monthTotal(y,m){
+    const pre=y+'-'+pad(m+1)+'-'; let t=0;
+    for(const k in state.days) if(k.startsWith(pre)) t+=state.days[k].n;
+    return t;
+  }
+  function allTotal(){ let t=0; for(const k in state.days) t+=state.days[k].n; return t; }
+
+  function streakInfo(){
+    const keys=Object.keys(state.days).filter(k=>state.days[k].n>=DAILY).sort();
+    const nextK=k=>{ const [y,m,d]=k.split('-').map(Number); return dkey(new Date(y,m-1,d+1)); };
+    let run=0, prev=null, startK=null, done=null, done30=null;
+    for(const k of keys){
+      if(prev && nextK(prev)===k){ run++; } else { run=1; startK=k; }
+      if(run>=NEED && !done) done={from:startK,to:k};
+      if(run>=LONG && !done30) done30={from:startK,to:k};
+      prev=k;
+    }
+    const goalMet=k=>state.days[k]&&state.days[k].n>=DAILY;
+    let d=new Date(); if(!goalMet(dkey(d))) d.setDate(d.getDate()-1);
+    let cur=0; while(goalMet(dkey(d))){ cur++; d.setDate(d.getDate()-1); }
+    return {cur,done,done30};
+  }
+  function renderChallenge(){
+    const td=state.days[dkey(new Date())], n=td?td.n:0, info=streakInfo();
+    $('chGoal').textContent=num(DAILY);
+    $('chToday').textContent=num(n);
+    $('chBar').style.width=Math.min(100,n/DAILY*100)+'%';
+    $('chDots').innerHTML=Array.from({length:NEED},(_,i)=>'<span'+(i<info.cur?' class="on">✓':'>'+(i+1))+'</span>').join('');
+    const left=Math.max(0,DAILY-n);
+    $('chMsg').textContent=(left?num(left)+' more presses to complete today':'Today complete ✓')+' · '+info.cur+' day'+(info.cur===1?'':'s')+' in a row'+(info.cur&&left?' (reach the goal today to keep the streak)':'');
+    $('chLong').textContent=Math.min(info.cur,LONG);
+    $('chBar30').style.width=Math.min(100,info.cur/LONG*100)+'%';
+    const b30=$('chBanner30');
+    if(info.done30){ b30.hidden=false; b30.textContent='🏰 30-day challenge complete: '+num(DAILY)+' presses a day for 30 days in a row ('+info.done30.from+' to '+info.done30.to+'). Reward: C25 castle (400k gems + 1,000 days total speedups)'; }
+    else b30.hidden=true;
+    const b=$('chBanner');
+    if(info.done){ b.hidden=false; b.textContent='🎉 Challenge complete: '+num(DAILY)+' presses a day, 7 days in a row ('+info.done.from+' to '+info.done.to+'). Reward: 44,442 RSS'; }
+    else b.hidden=true;
+  }
+
+  function renderCounter(){
+    countNum.textContent=state.count;
+    const p=(state.count%CYCLE)/CYCLE;
+    ringFill.style.strokeDashoffset=CIRC-p*CIRC;
+    $('malaTxt').textContent=Math.floor(state.count/CYCLE)+' malas done · '+(state.count%CYCLE)+' / '+CYCLE;
+    const td=state.days[dkey(new Date())];
+    $('todayNum').textContent=num(td?td.n:0);
+    const n=new Date();
+    $('monthNowNum').textContent=num(monthTotal(n.getFullYear(),n.getMonth()));
+    $('allNum').textContent=num(allTotal());
+    renderChallenge();
+  }
+
+  const DAILY=1188, NEED=7, LONG=30, GOAL=10000, SECRET='rvsh-9f3k2-castle-c25';
+  let tampered=false, inactive=false;
+  function H(s){let h1=0xdeadbeef,h2=0x41c6ce57;for(let i=0;i<s.length;i++){const c=s.charCodeAt(i);h1=Math.imul(h1^c,2654435761);h2=Math.imul(h2^c,1597334677);}h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909);h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);return (4294967296*(2097151&h2)+(h1>>>0)).toString(36);}
+  function sigOf(){ return H([state.count,state.best,state.total||0,state.chain||'',state.lastT||0,JSON.stringify(state.days)].join('#')+SECRET); }
+  function seal(){ state.sig=sigOf(); }
+  /* only one tab may count at a time */
+  const TAB='t'+Math.random().toString(36).slice(2);
+  function beat(){
+    try{
+      const raw=localStorage.getItem('japa-tab'), L=raw?JSON.parse(raw):null, n=Date.now();
+      if(!L||L.id===TAB||n-L.ts>5000){
+        const was=inactive; inactive=false;
+        localStorage.setItem('japa-tab',JSON.stringify({id:TAB,ts:n}));
+        if(was){ load(); renderCounter(); renderFeed(); renderMonth(); }
+      } else inactive=true;
+    }catch(e){}
+  }
+  function renderFeed(){
+    const el=$('feed');
+    if(!state.feed.length){ el.innerHTML='<div class="empty-note">No presses yet. Tap the circle to begin.</div>'; return; }
+    el.innerHTML=state.feed.slice(0,50).map(f=>
+      '<li><span class="t">'+new Date(f[0]).toLocaleDateString([], {day:'numeric',month:'short'})+' · '+fmtT(f[0])+
+      '</span><span class="p">+1</span><span class="n">#'+f[1]+'</span></li>').join('');
+  }
+
+  function renderMonth(){
+    const {y,m}=view;
+    $('mName').textContent=MONTHS[m]+' '+y;
+    const dim=new Date(y,m+1,0).getDate(), first=new Date(y,m,1).getDay();
+    const pre=y+'-'+pad(m+1)+'-';
+    let max=0, active=0, bestDay=null;
+    for(let d=1;d<=dim;d++){
+      const r=state.days[pre+pad(d)];
+      if(r){ active++; if(r.n>max){max=r.n;bestDay=d;} }
+    }
+    const total=monthTotal(y,m);
+    $('mSum').innerHTML='Total <b>'+num(total)+'</b> · '+active+' active day'+(active===1?'':'s')+
+      (bestDay?' · best day <b>'+bestDay+'</b> ('+num(max)+')':'');
+    const todayK=dkey(new Date());
+    let html='';
+    for(let i=0;i<first;i++) html+='<div class="cell empty"></div>';
+    for(let d=1;d<=dim;d++){
+      const k=pre+pad(d), r=state.days[k], n=r?r.n:0;
+      const a=n&&max?(0.15+0.5*n/max):0;
+      const bg=n?'background:rgba(232,150,10,'+a.toFixed(2)+')':'';
+      html+='<button class="cell'+(n>=DAILY?' goal':'')+(k===todayK?' today':'')+(k===selected?' sel':'')+'" data-k="'+k+'" style="'+bg+'">'+
+        '<span class="d">'+d+'</span>'+(n?'<span class="c">'+(n>=10000?(n/1000).toFixed(1)+'k':n)+'</span>':'')+'</button>';
+    }
+    $('grid').innerHTML=html;
+    const nowM=new Date();
+    $('nextM').disabled=(y>nowM.getFullYear()||(y===nowM.getFullYear()&&m>=nowM.getMonth()));
+    renderDetail();
+  }
+
+  function renderDetail(){
+    const el=$('detail');
+    if(!selected){ el.textContent='Tap a day to see details.'; return; }
+    const r=state.days[selected];
+    const [y,mo,d]=selected.split('-').map(Number);
+    const label=d+' '+MONTHS[mo-1]+' '+y;
+    if(!r){ el.innerHTML='<b>'+label+'</b><br>No presses this day.'; return; }
+    let pk=0; r.h.forEach((v,i)=>{ if(v>r.h[pk]) pk=i; });
+    const hl=h=>new Date(2000,0,1,h).toLocaleTimeString([], {hour:'numeric'});
+    el.innerHTML='<b>'+label+'</b><br><b style="color:var(--maroon)">'+num(r.n)+'</b> presses · first '+fmtS(r.first)+
+      ' · last '+fmtS(r.last)+'<br>Busiest hour: '+hl(pk)+' ('+num(r.h[pk])+')';
+  }
+
+  function fireRipple(){ ripple.classList.remove('go'); void ripple.offsetWidth; ripple.classList.add('go'); }
+
+  function tap(){
+    const t=Date.now(), d=new Date(t), k=dkey(d);
+    state.count+=1; if(state.count>state.best) state.best=state.count;
+    let r=state.days[k];
+    if(!r){ r=state.days[k]={n:0,first:t,last:t,h:new Array(24).fill(0)}; }
+    r.n+=1; r.last=t; r.h[d.getHours()]+=1;
+    state.feed.unshift([t,state.count]);
+    state.total=(state.total||0)+1; state.lastT=t; if(!state.firstT) state.firstT=t;
+    state.chain=H((state.chain||'')+'|'+t+'|'+state.total+'|'+state.count);
+    if(state.total===GOAL) state.goalT=t;
+    if(state.feed.length>FEED_MAX) state.feed.length=FEED_MAX;
+    save();
+    renderCounter(); renderFeed(); fireRipple();
+    try{ if(navigator.vibrate) navigator.vibrate(12); }catch(e){}
+    if(view.y===d.getFullYear()&&view.m===d.getMonth()) renderMonth();
+  }
+
+  /* Anti auto-clicker guard */
+  const MIN_GAP=80, WIN=20, LOCK_MS=30000;
+  const PEN=[30,300,3000,9000,12000,15000];
+  let pen={s:0,u:0};
+  try{ pen=JSON.parse(localStorage.getItem('japa-pen'))||pen; }catch(e){}
+  function fmtDur(s){ return s<120?s+'s':s<7200?Math.round(s/60)+' min':(s/3600).toFixed(1)+' h'; }
+  function penalize(t){
+    const i=pen.s, secs=i<PEN.length?PEN[i]:PEN[PEN.length-1]+3000*(i-PEN.length+1);
+    pen.s=i+1; pen.u=t+secs*1000; lockUntil=pen.u;
+    try{ localStorage.setItem('japa-pen',JSON.stringify(pen)); }catch(e){}
+    recent=[]; warn('auto-click detected · paused '+fmtDur(secs),8000);
+  }
+  let recent=[], lockUntil=pen.u||0, hintTimer=null, lockTimer=null;
+  function warn(msg,ms){
+    const h=$('tapHint'); h.textContent=msg;
+    clearTimeout(hintTimer);
+    hintTimer=setTimeout(()=>{ h.textContent='tap to count'; },ms);
+  }
+  function looksAutomated(){
+    if(recent.length<WIN) return false;
+    const gaps=[]; for(let i=1;i<recent.length;i++) gaps.push(recent[i].t-recent[i-1].t);
+    const mean=gaps.reduce((a,b)=>a+b,0)/gaps.length;
+    const sd=Math.sqrt(gaps.reduce((a,b)=>a+(b-mean)*(b-mean),0)/gaps.length);
+    const cv=mean?sd/mean:0;
+    const xs=recent.map(r=>r.x), ys=recent.map(r=>r.y);
+    const still=(Math.max(...xs)===Math.min(...xs))&&(Math.max(...ys)===Math.min(...ys));
+    const hs=recent.map(r=>r.h).sort((a,b)=>a-b), med=hs[hs.length>>1];
+    return cv<0.08 || (still && cv<0.25 && mean<600) || med<12;
+  }
+  function guardedTap(e){
+    if(!e.isTrusted||e.detail===0||!pdown) return;
+    const pd=pdown; pdown=null;
+    const t=Date.now();
+    if(tampered){ warn('log tampered',2500); return; }
+    if(inactive){ beat(); if(inactive){ warn('open in one tab only',2000); return; } }
+    if(t<(state.lastT||0)-1000){ warn('clock changed',2500); return; }
+    if(t<lockUntil){ warn('paused '+fmtDur(Math.ceil((lockUntil-t)/1000)),1200); return; }
+    const last=recent.length?recent[recent.length-1].t:0;
+    if(last && t-last<MIN_GAP){ warn('too fast',800); return; }
+    if(last && t-last>3000) recent=[];
+    recent.push({t:t,x:e.clientX,y:e.clientY,h:pd.hold});
+    if(recent.length>WIN) recent.shift();
+    if(looksAutomated()){
+      penalize(t);
+      return;
+    }
+    minute.push(t); while(minute.length&&t-minute[0]>60000) minute.shift();
+    if(minute.length>150){ lockUntil=t+LOCK_MS; minute=[]; warn('slow down · paused',LOCK_MS); return; }
+    tap();
+  }
+  let minute=[], pdown=null;
+  let active=0, lastDown=0;
+  tapBtn.addEventListener('pointerdown',()=>{
+    const n=performance.now();
+    if(n-lastDown>1500) active=0;
+    active++; lastDown=n;
+    pdown=active>1?null:{t:Date.now(),pt:n,hold:999};
+  });
+  const upFn=()=>{ active=Math.max(0,active-1); if(pdown) pdown.hold=performance.now()-pdown.pt; };
+  tapBtn.addEventListener('pointerup',upFn);
+  tapBtn.addEventListener('pointercancel',()=>{ active=Math.max(0,active-1); pdown=null; });
+  tapBtn.addEventListener('click',guardedTap);
+  resetBtn.addEventListener('click',()=>{ if(tampered||inactive) return; state.count=0; save(); renderCounter(); });
+
+  $('prevM').addEventListener('click',()=>{ view.m--; if(view.m<0){view.m=11;view.y--;} selected=null; renderMonth(); });
+  $('nextM').addEventListener('click',()=>{ view.m++; if(view.m>11){view.m=0;view.y++;} selected=null; renderMonth(); });
+  $('grid').addEventListener('click',e=>{
+    const b=e.target.closest('.cell[data-k]'); if(!b) return;
+    selected=b.dataset.k; renderMonth();
+  });
+
+  function buildLog(){
+    const L=[], dt=ts=>new Date(ts).toLocaleString();
+    const hl=h=>new Date(2000,0,1,h).toLocaleTimeString([], {hour:'numeric'});
+    L.push('Radha Vallabh Shri Harivansh - Japa Counter Log','Exported: '+dt(Date.now()),'');
+    const si=streakInfo();
+    L.push('All-time presses: '+allTotal(),'Current counter: '+state.count,'Highest count: '+state.best,'');
+    L.push('Daily goal: '+DAILY+' | Current streak: '+si.cur+' days | 7-day: '+(si.done?'COMPLETE ('+si.done.from+' to '+si.done.to+')':'not complete')+' | 30-day: '+(si.done30?'COMPLETE ('+si.done30.from+' to '+si.done30.to+')':'not complete'),'');
+    L.push('DAILY LOG (date | presses | first press | last press | goal)');
+    Object.keys(state.days).sort().forEach(k=>{
+      const r=state.days[k];
+      L.push(k+' | '+r.n+' | '+fmtT(r.first)+' | '+fmtT(r.last)+(r.n>=DAILY?' | GOAL MET':''));
+      L.push('   by hour: '+r.h.map((v,i)=>v?hl(i)+': '+v:'').filter(Boolean).join(', '));
+    });
+    L.push('','RECENT PRESSES (latest '+state.feed.length+', newest first)','date & time | count');
+    state.feed.forEach(f=>L.push(dt(f[0])+' | #'+f[1]));
+    if(tampered){ L.unshift('STATUS: TAMPERED - NOT VALID',''); return L.join('\n'); }
+    const body=L.join('\n');
+    return body+'\n\nSite: RVSH-OFFICIAL\nTotal-chain: '+(state.chain||'-')+'\nSignature: '+H(body+'|'+(state.chain||'')+SECRET);
+  }
+  $('vbtn').addEventListener('click',()=>{
+    const t=$('vin').value.replace(/\r/g,'').trim(), out=$('vout');
+    const m=t.match(/^([\s\S]*)\n\nSite: RVSH-OFFICIAL\nTotal-chain: (.*)\nSignature: (\S+)$/);
+    const ok=m&&m[3]===H(m[1]+'|'+(m[2]==='-'?'':m[2])+SECRET);
+    out.textContent=ok?'✓ Genuine log from this site, not edited':'✗ Invalid, edited or not from this site';
+  });
+  function buildMonth(){
+    const {y,m}=view, pre=y+'-'+pad(m+1)+'-', L=[];
+    const hl=h=>new Date(2000,0,1,h).toLocaleTimeString([], {hour:'numeric'});
+    L.push('Japa Counter - '+MONTHS[m]+' '+y,'Exported: '+new Date().toLocaleString(),'');
+    L.push('Month total: '+monthTotal(y,m),'','DATE | PRESSES | FIRST | LAST');
+    Object.keys(state.days).sort().filter(k=>k.startsWith(pre)).forEach(k=>{
+      const r=state.days[k];
+      L.push(k+' | '+r.n+' | '+fmtT(r.first)+' | '+fmtT(r.last));
+      L.push('   by hour: '+r.h.map((v,i)=>v?hl(i)+': '+v:'').filter(Boolean).join(', '));
+    });
+    return L.join('\n');
+  }
+  function showBox(text){ const box=$('exportBox'); box.value=text; box.hidden=false; box.focus(); box.select(); }
+  async function saveTxt(text,name){
+    try{
+      const dl=await claude.use('downloads');
+      if(!dl) throw new Error('no downloads');
+      await dl.save({filename:name,data:text});
+    }catch(e){
+      if(e&&e.code==='declined') return;
+      showBox(text);
+    }
+  }
+  $('exportBtn').addEventListener('click',()=>saveTxt(buildLog(),'japa-log-'+dkey(new Date())+'.txt'));
+  $('monthBtn').addEventListener('click',()=>saveTxt(buildMonth(),'japa-'+view.y+'-'+pad(view.m+1)+'.txt'));
+  $('copyBtn').addEventListener('click',async()=>{
+    const text=buildLog(), b=$('copyBtn');
+    try{ await navigator.clipboard.writeText(text); b.textContent='✓ Copied'; setTimeout(()=>{ b.textContent='📋 Copy log'; },2000); }
+    catch(e){ showBox(text); }
+  });
+  load(); beat(); renderCounter(); renderFeed(); renderMonth();
+  setInterval(beat,2000);
+  document.addEventListener('visibilitychange',beat);
+  window.addEventListener('focus',beat);
+})();
+</script>
+</body>
+</html>
